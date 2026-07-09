@@ -69,13 +69,14 @@ function drop(ev) {
     const data = ev.dataTransfer.getData("text");
     const zone = ev.target;
     
-    // Si on dépose sur le plateau, on incrémente le score
     if (zone.id === 'plateau') {
         zone.appendChild(document.getElementById(data));
         score++;
         document.getElementById('score').innerText = score;
-    } else if (zone.id === 'main-joueur') {
-        zone.appendChild(document.getElementById(data));
+        
+        // --- C'est ici que tu ajoutes l'appel à l'ordinateur ! ---
+        // On attend 1 seconde pour que le joueur voie son action
+        setTimeout(tourOrdinateur, 1000); 
     }
 }
 
@@ -119,3 +120,9 @@ function tourOrdinateur() {
         }
     }
 }
+// ... (toutes tes fonctions : genererDeck, trouverCombinaison, tourOrdinateur, etc.)
+
+// C'est ICI, tout en bas du fichier, que tu appelles les fonctions nécessaires
+// pour démarrer le jeu une fois que tout est chargé :
+
+initialiserPartie();
