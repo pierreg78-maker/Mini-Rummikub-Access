@@ -93,18 +93,29 @@ function joueurPioche() {
 }
 
 function tourOrdinateur() {
-    const coup = trouverCombinaison(mainOrdi); // Ta fonction de recherche
+    console.log("L'ordinateur réfléchit...");
+    
+    const coup = trouverCombinaison(mainOrdi); // Scan la main de l'ordi
     
     if (coup) {
         const plateau = document.getElementById('plateau');
-        coup.forEach(tuile => {
-            // Logique pour déplacer visuellement la tuile de la main au plateau
-            const element = document.getElementById(tuile.id);
+        
+        coup.forEach(tuileTrouvee => {
+            // 1. Déplacer visuellement
+            const element = document.getElementById(tuileTrouvee.id);
             if (element) plateau.appendChild(element);
+            
+            // 2. Retirer de la mémoire de l'ordinateur
+            mainOrdi = mainOrdi.filter(t => t.id !== tuileTrouvee.id);
         });
-        console.log("L'ordinateur a joué !");
+        
+        console.log("L'IA a posé :", coup);
     } else {
-        console.log("L'ordinateur n'a pas de coup, il pioche.");
-        // Logique pour ajouter une tuile à mainOrdi et l'afficher si nécessaire
+        // L'IA pioche
+        const tuilePiochee = deck.pop();
+        if (tuilePiochee) {
+            mainOrdi.push(tuilePiochee);
+            console.log("L'IA n'a pas pu jouer et a pioché.");
+        }
     }
 }
