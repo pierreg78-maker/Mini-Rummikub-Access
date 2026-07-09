@@ -36,3 +36,33 @@ function drop(ev) {
     const data = ev.dataTransfer.getData("text");
     ev.target.appendChild(document.getElementById(data));
 }
+let score = 0;
+
+function reinitialiserPartie() {
+    // Vider le plateau et la main
+    document.getElementById('plateau').innerHTML = '';
+    document.getElementById('main-joueur').innerHTML = '';
+    score = 0;
+    document.getElementById('score').innerText = score;
+    
+    // Relancer la distribution
+    genererDeck();
+    const mainJoueur = document.getElementById('main-joueur');
+    deck.slice(0, 12).forEach(t => mainJoueur.appendChild(creerElementTuile(t)));
+}
+
+// Modifier la fonction drop pour compter les tuiles
+function drop(ev) {
+    ev.preventDefault();
+    const data = ev.dataTransfer.getData("text");
+    const zone = ev.target;
+    
+    // Si on dépose sur le plateau, on incrémente le score
+    if (zone.id === 'plateau') {
+        zone.appendChild(document.getElementById(data));
+        score++;
+        document.getElementById('score').innerText = score;
+    } else if (zone.id === 'main-joueur') {
+        zone.appendChild(document.getElementById(data));
+    }
+}
