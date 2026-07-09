@@ -26,19 +26,31 @@ function creerElementTuile(t) {
 }
 
 // Initialisation
-genererDeck();
-const mainJoueur = document.getElementById('main-joueur');
-deck.slice(0, 12).forEach(t => mainJoueur.appendChild(creerElementTuile(t)));
+// Déclaration des variables globales nécessaires
+let mainJoueur = [];
+let mainOrdi = [];
 
-function allowDrop(ev) { ev.preventDefault(); }
-function drop(ev) {
-    ev.preventDefault();
-    const data = ev.dataTransfer.getData("text");
-    ev.target.appendChild(document.getElementById(data));
+function initialiserPartie() {
+    genererDeck();
+    
+    // Vider les mains pour une nouvelle partie
+    mainJoueur = [];
+    mainOrdi = [];
+    
+    // Distribution : 6 tuiles pour le joueur, 6 pour l'ordinateur
+    for(let i = 0; i < 6; i++) {
+        mainJoueur.push(deck.pop());
+        mainOrdi.push(deck.pop());
+    }
+    
+    // Affichage des tuiles du joueur dans le DOM
+    const conteneurJoueur = document.getElementById('main-joueur');
+    conteneurJoueur.innerHTML = ''; // Nettoyage
+    mainJoueur.forEach(t => conteneurJoueur.appendChild(creerElementTuile(t)));
+    
+    console.log("Partie initialisée. Main ordi :", mainOrdi);
 }
-let score = 0;
 
-function reinitialiserPartie() {
     // Vider le plateau et la main
     document.getElementById('plateau').innerHTML = '';
     document.getElementById('main-joueur').innerHTML = '';
