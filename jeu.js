@@ -66,3 +66,33 @@ function drop(ev) {
         zone.appendChild(document.getElementById(data));
     }
 }
+
+function joueurPioche() {
+    if (pioche.length > 0) {
+        const tuile = pioche.pop();
+        const mainJoueurDiv = document.getElementById('main-joueur');
+        mainJoueurDiv.appendChild(creerElementTuile(tuile));
+        
+        // Une fois que le joueur a pioché, c'est au tour de l'ordi
+        setTimeout(tourOrdinateur, 500); 
+    } else {
+        alert("La pioche est vide !");
+    }
+}
+
+function tourOrdinateur() {
+    const coup = trouverCombinaison(mainOrdi); // Ta fonction de recherche
+    
+    if (coup) {
+        const plateau = document.getElementById('plateau');
+        coup.forEach(tuile => {
+            // Logique pour déplacer visuellement la tuile de la main au plateau
+            const element = document.getElementById(tuile.id);
+            if (element) plateau.appendChild(element);
+        });
+        console.log("L'ordinateur a joué !");
+    } else {
+        console.log("L'ordinateur n'a pas de coup, il pioche.");
+        // Logique pour ajouter une tuile à mainOrdi et l'afficher si nécessaire
+    }
+}
