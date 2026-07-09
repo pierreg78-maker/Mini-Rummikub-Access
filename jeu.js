@@ -23,7 +23,8 @@ function creerElementTuile(t) {
     div.innerText = t.nombre;
     div.id = t.id;
     div.draggable = true;
-    div.ondragstart = (ev) => ev.dataTransfer.setData("text", ev.target.id);
+    div.addEventListener('dragstart', () => div.classList.add('dragging'));
+    div.addEventListener('dragend', () => div.classList.remove('dragging'));
     return div;
 }
 
@@ -35,7 +36,8 @@ function initialiserPartie() {
     document.getElementById('score').innerText = score;
     document.getElementById('plateau').innerHTML = '';
     
-    for(let i = 0; i < 6; i++) {
+    // Distribution de 7 tuiles
+    for(let i = 0; i < 7; i++) {
         mainJoueur.push(deck.pop());
         mainOrdi.push(deck.pop());
     }
@@ -46,7 +48,6 @@ function initialiserPartie() {
 }
 
 function trouverCombinaison(main) {
-    // Version simplifiée : cherche une suite de 3 pour l'IA
     for (let couleur of couleurs) {
         let tuiles = main.filter(t => t.couleur === couleur).sort((a,b) => a.nombre - b.nombre);
         for (let i = 0; i <= tuiles.length - 3; i++) {
@@ -67,9 +68,32 @@ function tourOrdinateur() {
             if (el) plateau.appendChild(el);
             mainOrdi = mainOrdi.filter(item => item.id !== t.id);
         });
-    } else {
-        if(deck.length > 0) mainOrdi.push(deck.pop());
+    } else if (deck.length > 0) {
+        mainOrdi.push(deck.pop());
     }
+}
+
+// Logique de réorganisation dans la main
+document.getElementById('main-joueur').addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const container = document.getElementById('main-joueur');
+    const afterElement = getDragAfterElement(container, e.clientX);
+    const dragging = document.querySelector('.dragging');
+    if (afterElement == null) {
+        container.appendChild(dragging);
+    } else {
+        container.insertBefore(dragging, afterElement);
+    }
+});
+
+function getDragAfterElement(container, x) {
+    const draggableElements = [...container.querySelectorAll('.tuile:not(.dragging)')];
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = x - box.left - box.width / 2;
+        if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+        else return closest;
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
 function drop(ev) {
@@ -94,5 +118,5 @@ function joueurPioche() {
     }
 }
 
-// Lancement au démarrage
+// Démarrage
 initialiserPartie();
