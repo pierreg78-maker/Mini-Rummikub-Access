@@ -1,12 +1,14 @@
 const couleurs = ['rouge', 'vert', 'bleu'];
 const nombres = [1, 2, 3, 4, 5, 6];
 let deck = [];
+let mainJoueur = [];
+let mainOrdi = [];
+let score = 0;
 
 function genererDeck() {
     deck = [];
     couleurs.forEach(couleur => {
         nombres.forEach(nombre => {
-            // 2 exemplaires au lieu de 3 pour plus de lisibilité
             for (let i = 0; i < 2; i++) {
                 deck.push({ nombre, couleur, id: `t-${couleur}-${nombre}-${i}` });
             }
@@ -25,104 +27,72 @@ function creerElementTuile(t) {
     return div;
 }
 
-// Initialisation
-// Déclaration des variables globales nécessaires
-let mainJoueur = [];
-let mainOrdi = [];
-
 function initialiserPartie() {
     genererDeck();
-    
-    // Vider les mains pour une nouvelle partie
     mainJoueur = [];
     mainOrdi = [];
+    score = 0;
+    document.getElementById('score').innerText = score;
+    document.getElementById('plateau').innerHTML = '';
     
-    // Distribution : 6 tuiles pour le joueur, 6 pour l'ordinateur
     for(let i = 0; i < 6; i++) {
         mainJoueur.push(deck.pop());
         mainOrdi.push(deck.pop());
     }
     
-    // Affichage des tuiles du joueur dans le DOM
     const conteneurJoueur = document.getElementById('main-joueur');
-    conteneurJoueur.innerHTML = ''; // Nettoyage
+    conteneurJoueur.innerHTML = '';
     mainJoueur.forEach(t => conteneurJoueur.appendChild(creerElementTuile(t)));
-    
-    console.log("Partie initialisée. Main ordi :", mainOrdi);
 }
 
-    // Vider le plateau et la main
-    document.getElementById('plateau').innerHTML = '';
-    document.getElementById('main-joueur').innerHTML = '';
-    score = 0;
-    document.getElementById('score').innerText = score;
-    
-    // Relancer la distribution
-    genererDeck();
-    const mainJoueur = document.getElementById('main-joueur');
-    deck.slice(0, 12).forEach(t => mainJoueur.appendChild(creerElementTuile(t)));
-}
-
-// Modifier la fonction drop pour compter les tuiles
-function drop(ev) {
-    ev.preventDefault();
-    const data = ev.dataTransfer.getData("text");
-    const zone = ev.target;
-    
-    if (zone.id === 'plateau') {
-        zone.appendChild(document.getElementById(data));
-        score++;
-        document.getElementById('score').innerText = score;
-        
-        // --- C'est ici que tu ajoutes l'appel à l'ordinateur ! ---
-        // On attend 1 seconde pour que le joueur voie son action
-        setTimeout(tourOrdinateur, 1000); 
+function trouverCombinaison(main) {
+    // Version simplifiée : cherche une suite de 3 pour l'IA
+    for (let couleur of couleurs) {
+        let tuiles = main.filter(t => t.couleur === couleur).sort((a,b) => a.nombre - b.nombre);
+        for (let i = 0; i <= tuiles.length - 3; i++) {
+            if (tuiles[i+1].nombre === tuiles[i].nombre + 1 && tuiles[i+2].nombre === tuiles[i].nombre + 2) {
+                return [tuiles[i], tuiles[i+1], tuiles[i+2]];
+            }
+        }
     }
-}
-
-function joueurPioche() {
-    if (pioche.length > 0) {
-        const tuile = pioche.pop();
-        const mainJoueurDiv = document.getElementById('main-joueur');
-        mainJoueurDiv.appendChild(creerElementTuile(tuile));
-        
-        // Une fois que le joueur a pioché, c'est au tour de l'ordi
-        setTimeout(tourOrdinateur, 500); 
-    } else {
-        alert("La pioche est vide !");
-    }
+    return null;
 }
 
 function tourOrdinateur() {
-    console.log("L'ordinateur réfléchit...");
-    
-    const coup = trouverCombinaison(mainOrdi); // Scan la main de l'ordi
-    
+    const coup = trouverCombinaison(mainOrdi);
     if (coup) {
         const plateau = document.getElementById('plateau');
-        
-        coup.forEach(tuileTrouvee => {
-            // 1. Déplacer visuellement
-            const element = document.getElementById(tuileTrouvee.id);
-            if (element) plateau.appendChild(element);
-            
-            // 2. Retirer de la mémoire de l'ordinateur
-            mainOrdi = mainOrdi.filter(t => t.id !== tuileTrouvee.id);
+        coup.forEach(t => {
+            const el = document.getElementById(t.id);
+            if (el) plateau.appendChild(el);
+            mainOrdi = mainOrdi.filter(item => item.id !== t.id);
         });
-        
-        console.log("L'IA a posé :", coup);
     } else {
-        // L'IA pioche
-        const tuilePiochee = deck.pop();
-        if (tuilePiochee) {
-            mainOrdi.push(tuilePiochee);
-            console.log("L'IA n'a pas pu jouer et a pioché.");
-        }
+        if(deck.length > 0) mainOrdi.push(deck.pop());
     }
 }
-// ... (toutes tes fonctions : genererDeck, trouverCombinaison, tourOrdinateur, etc.)
 
-// C'est ICI, tout en bas du fichier, que tu appelles les fonctions nécessaires
-// pour démarrer le jeu une fois que tout est chargé :
+function drop(ev) {
+    ev.preventDefault();
+    const data = ev.dataTransfer.getData("text");
+    if (ev.target.id === 'plateau') {
+        ev.target.appendChild(document.getElementById(data));
+        score++;
+        document.getElementById('score').innerText = score;
+        setTimeout(tourOrdinateur, 1000);
+    }
+}
 
+function allowDrop(ev) { ev.preventDefault(); }
+
+function joueurPioche() {
+    if (deck.length > 0) {
+        const t = deck.pop();
+        mainJoueur.push(t);
+        document.getElementById('main-joueur').appendChild(creerElementTuile(t));
+        setTimeout(tourOrdinateur, 500);
+    }
+}
+
+// Lancement au démarrage
 initialiserPartie();
