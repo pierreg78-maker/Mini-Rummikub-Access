@@ -1,9 +1,6 @@
 const couleurs = ['rouge', 'vert', 'bleu'];
 const nombres = [1, 2, 3, 4, 5, 6];
-let deck = [];
-let mainJoueur = [];
-let mainOrdi = [];
-let score = 0;
+let deck = [], mainJoueur = [], mainOrdi = [], score = 0;
 
 function genererDeck() {
     deck = [];
@@ -30,31 +27,30 @@ function creerElementTuile(t) {
 
 function initialiserPartie() {
     genererDeck();
-    mainJoueur = [];
-    mainOrdi = [];
-    score = 0;
+    mainJoueur = []; mainOrdi = []; score = 0;
     document.getElementById('score').innerText = score;
     document.getElementById('plateau').innerHTML = '';
-    
-    // Distribution de 7 tuiles
     for(let i = 0; i < 7; i++) {
         mainJoueur.push(deck.pop());
         mainOrdi.push(deck.pop());
     }
-    
     const conteneurJoueur = document.getElementById('main-joueur');
     conteneurJoueur.innerHTML = '';
     mainJoueur.forEach(t => conteneurJoueur.appendChild(creerElementTuile(t)));
 }
 
 function trouverCombinaison(main) {
+    // 1. Suites de 2
     for (let couleur of couleurs) {
         let tuiles = main.filter(t => t.couleur === couleur).sort((a,b) => a.nombre - b.nombre);
-        for (let i = 0; i <= tuiles.length - 3; i++) {
-            if (tuiles[i+1].nombre === tuiles[i].nombre + 1 && tuiles[i+2].nombre === tuiles[i].nombre + 2) {
-                return [tuiles[i], tuiles[i+1], tuiles[i+2]];
-            }
+        for (let i = 0; i <= tuiles.length - 2; i++) {
+            if (tuiles[i+1].nombre === tuiles[i].nombre + 1) return [tuiles[i], tuiles[i+1]];
         }
+    }
+    // 2. Paires
+    for (let n of nombres) {
+        let groupe = main.filter(t => t.nombre === n);
+        if (groupe.length >= 2) return [groupe[0], groupe[1]];
     }
     return null;
 }
@@ -73,41 +69,24 @@ function tourOrdinateur() {
     }
 }
 
-// Logique de réorganisation dans la main
-document.getElementById('main-joueur').addEventListener('dragover', (e) => {
-    e.preventDefault();
-    const container = document.getElementById('main-joueur');
-    const afterElement = getDragAfterElement(container, e.clientX);
-    const dragging = document.querySelector('.dragging');
-    if (afterElement == null) {
-        container.appendChild(dragging);
-    } else {
-        container.insertBefore(dragging, afterElement);
-    }
-});
-
-function getDragAfterElement(container, x) {
-    const draggableElements = [...container.querySelectorAll('.tuile:not(.dragging)')];
-    return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = x - box.left - box.width / 2;
-        if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
-        else return closest;
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
+function allowDrop(ev) { ev.preventDefault(); }
 
 function drop(ev) {
     ev.preventDefault();
     const data = ev.dataTransfer.getData("text");
-    if (ev.target.id === 'plateau') {
-        ev.target.appendChild(document.getElementById(data));
+    const draggedElement = document.getElementById(data);
+    let target = ev.target;
+    if (target.classList.contains('tuile')) target = target.parentElement;
+
+    if (target.id === 'plateau') {
+        target.appendChild(draggedElement);
         score++;
         document.getElementById('score').innerText = score;
         setTimeout(tourOrdinateur, 1000);
+    } else if (target.id === 'main-joueur') {
+        target.appendChild(draggedElement);
     }
 }
-
-function allowDrop(ev) { ev.preventDefault(); }
 
 function joueurPioche() {
     if (deck.length > 0) {
@@ -118,5 +97,4 @@ function joueurPioche() {
     }
 }
 
-// Démarrage
 initialiserPartie();
