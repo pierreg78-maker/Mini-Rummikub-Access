@@ -156,7 +156,7 @@ function renduComplet() {
     // un second groupe d'une seule tuile.
     const zoneNouveauGroupe = document.createElement('div');
     zoneNouveauGroupe.className = 'nouveau-groupe';
-    zoneNouveauGroupe.innerText = '+ Nouveau groupe';
+    zoneNouveauGroupe.innerText = '+ Poser les tuiles de jeu ici';
     zoneNouveauGroupe.addEventListener('dragover', allowDrop);
     zoneNouveauGroupe.addEventListener('drop', (ev) => drop(ev, 'nouveauGroupe'));
     plateau.appendChild(zoneNouveauGroupe);
@@ -271,7 +271,7 @@ function joueurPioche() {
     if (deck.length > 0) {
         mainJoueur.push(deck.pop());
         renduComplet();
-        afficherMessage("Tu piochés une tuile et passes ton tour.");
+        afficherMessage("Tu pioches une tuile et passes ton tour.");
         afficherTour("Tour de l'ordinateur...");
         setTimeout(tourOrdinateur, 500);
     } else {
