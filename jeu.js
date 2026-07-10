@@ -175,6 +175,29 @@ function retirerTuilePartout(id) {
         .filter(g => g.tuiles.length > 0);
 }
 
+// Fusionne automatiquement deux groupes du plateau si leur réunion forme une
+// combinaison valide (paire/trio/suite). Évite d'avoir des tuiles isolées qui
+// auraient dû rejoindre un groupe voisin mais ont atterri à côté par erreur.
+function fusionnerGroupesCompatibles() {
+    let fusionEffectuee = true;
+    while (fusionEffectuee) {
+        fusionEffectuee = false;
+        for (let i = 0; i < plateauGroupes.length && !fusionEffectuee; i++) {
+            for (let j = i + 1; j < plateauGroupes.length; j++) {
+                const a = plateauGroupes[i];
+                const b = plateauGroupes[j];
+                const combinees = [...a.tuiles, ...b.tuiles].map(id => toutesTuiles[id]);
+                if (estGroupeValide(combinees)) {
+                    a.tuiles = [...a.tuiles, ...b.tuiles];
+                    plateauGroupes.splice(j, 1);
+                    fusionEffectuee = true;
+                    break;
+                }
+            }
+        }
+    }
+}
+
 function drop(ev, targetType, targetGroupeId) {
     ev.preventDefault();
     ev.stopPropagation(); // empêche le drop de "remonter" et d'être traité une 2e fois par un parent
@@ -206,6 +229,7 @@ function drop(ev, targetType, targetGroupeId) {
         plateauGroupes.push({ id: `g${compteurGroupe++}`, tuiles: [id] });
     }
 
+    fusionnerGroupesCompatibles();
     renduComplet();
 }
 
@@ -293,6 +317,7 @@ function tourOrdinateur() {
             : "suite";
         plateauGroupes.push({ id: `g${compteurGroupe++}`, tuiles: coup.map(t => t.id) });
         mainOrdi = mainOrdi.filter(t => !coup.some(c => c.id === t.id));
+        fusionnerGroupesCompatibles();
         renduComplet();
         afficherMessage(`L'ordinateur pose une ${typeGroupe} (${coup.map(t => t.nombre + ' ' + t.couleur).join(', ')}).`);
         if (mainOrdi.length === 0) {
@@ -332,6 +357,17 @@ function finDeManche(gagnant) {
 document.getElementById('main-joueur').addEventListener('dragover', allowDrop);
 document.getElementById('main-joueur').addEventListener('drop', (ev) => drop(ev, 'main'));
 document.getElementById('plateau').addEventListener('dragover', allowDrop);
+
+// Surligne en vert le groupe (ou la zone "Nouveau groupe") actuellement survolé
+// pendant le glisser-déposer, pour savoir à l'avance où la tuile va atterrir.
+document.getElementById('plateau').addEventListener('dragover', (ev) => {
+    document.querySelectorAll('.groupe, .nouveau-groupe').forEach(el => el.classList.remove('survole'));
+    const cible = ev.target.closest('.groupe, .nouveau-groupe');
+    if (cible) cible.classList.add('survole');
+});
+document.addEventListener('dragend', () => {
+    document.querySelectorAll('.groupe, .nouveau-groupe').forEach(el => el.classList.remove('survole'));
+});
 // Plus d'écouteur "drop" direct ici : chaque groupe et la zone "+ Nouveau groupe"
 // gèrent leur propre dépôt (voir renduComplet). Cela évite qu'un dépôt sur un
 // groupe existant "remonte" et soit repris par le plateau pour créer un doublon.
