@@ -154,19 +154,6 @@ function trierTousLesGroupes() {
     plateauGroupes.forEach(trierGroupe);
 }
 
-// ---------- Tri de la main ----------
-
-function trierMainParCouleur() {
-    const ordre = { rouge: 0, vert: 1, bleu: 2 };
-    mainJoueur.sort((a, b) => ordre[a.couleur] - ordre[b.couleur] || a.nombre - b.nombre);
-    renduComplet();
-}
-
-function trierMainParChiffre() {
-    mainJoueur.sort((a, b) => a.nombre - b.nombre || a.couleur.localeCompare(b.couleur));
-    renduComplet();
-}
-
 // ---------- Rendu ----------
 
 function renduComplet() {
