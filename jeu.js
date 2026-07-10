@@ -136,10 +136,12 @@ function renduComplet() {
 
     const plateau = document.getElementById('plateau');
     plateau.innerHTML = '';
-    plateauGroupes.forEach(groupe => {
+    plateauGroupes.forEach((groupe, index) => {
         const divGroupe = document.createElement('div');
         divGroupe.className = 'groupe';
         divGroupe.dataset.groupeId = groupe.id;
+        divGroupe.dataset.numero = `Groupe ${index + 1}`;
+        divGroupe.title = `Groupe ${index + 1}`;
         divGroupe.addEventListener('dragover', allowDrop);
         divGroupe.addEventListener('drop', (ev) => drop(ev, 'groupe', groupe.id));
         groupe.tuiles.forEach(id => {
@@ -148,6 +150,16 @@ function renduComplet() {
         });
         plateau.appendChild(divGroupe);
     });
+
+    // Zone toujours visible et bien délimitée pour démarrer un NOUVEAU groupe.
+    // Évite qu'une tuile déposée "à côté" d'un groupe existant crée par erreur
+    // un second groupe d'une seule tuile.
+    const zoneNouveauGroupe = document.createElement('div');
+    zoneNouveauGroupe.className = 'nouveau-groupe';
+    zoneNouveauGroupe.innerText = '+ Nouveau groupe';
+    zoneNouveauGroupe.addEventListener('dragover', allowDrop);
+    zoneNouveauGroupe.addEventListener('drop', (ev) => drop(ev, 'nouveauGroupe'));
+    plateau.appendChild(zoneNouveauGroupe);
 
     majCompteurOrdi();
 }
@@ -165,6 +177,7 @@ function retirerTuilePartout(id) {
 
 function drop(ev, targetType, targetGroupeId) {
     ev.preventDefault();
+    ev.stopPropagation(); // empêche le drop de "remonter" et d'être traité une 2e fois par un parent
     const id = ev.dataTransfer.getData('text/plain');
     const tuile = toutesTuiles[id];
     if (!tuile) return;
@@ -319,6 +332,8 @@ function finDeManche(gagnant) {
 document.getElementById('main-joueur').addEventListener('dragover', allowDrop);
 document.getElementById('main-joueur').addEventListener('drop', (ev) => drop(ev, 'main'));
 document.getElementById('plateau').addEventListener('dragover', allowDrop);
-document.getElementById('plateau').addEventListener('drop', (ev) => drop(ev, 'nouveauGroupe'));
+// Plus d'écouteur "drop" direct ici : chaque groupe et la zone "+ Nouveau groupe"
+// gèrent leur propre dépôt (voir renduComplet). Cela évite qu'un dépôt sur un
+// groupe existant "remonte" et soit repris par le plateau pour créer un doublon.
 
 initialiserPartie();
