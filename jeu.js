@@ -11,6 +11,7 @@ let score = 0;
 
 let baselineGroupes = [];
 let baselineMainJoueurIds = [];
+let enTourJoueur = true; // verrou : empêche de piocher/valider pendant le tour de l'ordinateur
 
 // Nombre minimum de tuiles pour qu'un groupe (paire/trio ou suite) soit
 // valide. Réglable par le sélecteur "Min. Cartes" (2 = paires autorisées,
@@ -103,7 +104,19 @@ function demarrerNouvelleManche() {
 function demarrerTourJoueur() {
     baselineGroupes = cloneGroupes(plateauGroupes);
     baselineMainJoueurIds = mainJoueur.map(t => t.id);
+    enTourJoueur = true;
+    definirBoutonsActifs(true);
     afficherTour("À toi de jouer !");
+}
+
+// Active/désactive les boutons d'action pendant que l'ordinateur joue, pour
+// empêcher les taps répétés (double-piocher, double-valider) qui faussaient
+// la partie quand on cliquait plusieurs fois pendant le délai de l'IA.
+function definirBoutonsActifs(actif) {
+    const btnValider = document.querySelector('.btn-valider');
+    const btnPiocher = document.querySelector('.btn-piocher');
+    if (btnValider) btnValider.disabled = !actif;
+    if (btnPiocher) btnPiocher.disabled = !actif;
 }
 
 // ---------- Validation des groupes ----------
@@ -345,6 +358,8 @@ function fusionnerGroupesCompatibles() {
 // ---------- Tour du joueur ----------
 
 function validerCoup() {
+    if (!enTourJoueur) return;
+
     const toutesValides = plateauGroupes.every(g =>
         estGroupeValide(g.tuiles.map(id => toutesTuiles[id]))
     );
@@ -359,6 +374,9 @@ function validerCoup() {
         alert("Tu dois poser au moins une tuile de ta main ce tour-ci.");
         return;
     }
+
+    enTourJoueur = false;
+    definirBoutonsActifs(false);
 
     if (mainJoueur.length === 0) {
         finDeManche('joueur');
@@ -376,6 +394,10 @@ function annulerCoup() {
 }
 
 function joueurPioche() {
+    if (!enTourJoueur) return;
+    enTourJoueur = false;
+    definirBoutonsActifs(false);
+
     annulerCoup();
     if (deck.length > 0) {
         mainJoueur.push(deck.pop());
@@ -384,7 +406,7 @@ function joueurPioche() {
         afficherTour("Tour de l'ordinateur...");
         setTimeout(tourOrdinateur, 500);
     } else {
-        alert('La pioche est vide !');
+        finManchePiocheVide();
     }
 }
 
@@ -432,7 +454,7 @@ function tourOrdinateur() {
         mainOrdi = mainOrdi.filter(t => !coup.some(c => c.id === t.id));
         fusionnerGroupesCompatibles();
         renduComplet();
-        afficherMessage(`L'ordinateur pose une ${typeGroupe} (${coup.map(t => t.nombre + ' ' + t.couleur).join(', ')}).`);
+        afficherMessage(`L'ordinateur pose une ${typeGroupe} (${coup.map(t => t.nombre + ' ' + t.couleur).join(', ')}). À toi de jouer !`);
         if (mainOrdi.length === 0) {
             finDeManche('ordinateur');
             return;
@@ -440,11 +462,41 @@ function tourOrdinateur() {
     } else if (deck.length > 0) {
         mainOrdi.push(deck.pop());
         renduComplet();
-        afficherMessage("L'ordinateur ne peut rien poser et pioche.");
+        afficherMessage("L'ordinateur ne peut rien poser et pioche. À toi de jouer !");
     } else {
-        afficherMessage("L'ordinateur ne peut rien poser (pioche vide).");
+        afficherMessage("L'ordinateur ne peut rien poser (pioche vide). À toi de jouer !");
     }
     demarrerTourJoueur();
+}
+
+// ---------- Fin de manche par blocage (pioche vide) ----------
+
+// Quand la pioche est vide et que le joueur ne peut plus rien poser ni
+// piocher, la partie ne peut plus avancer : on arrête la manche ici même,
+// sans bouton ni fenêtre d'alerte, juste un message dans le journal.
+// Les points sont comptés sur la différence de valeur entre les deux mains :
+// celui qui a le moins de tuiles en main gagne la différence.
+function finManchePiocheVide() {
+    const valeurJoueur = mainJoueur.reduce((s, t) => s + t.nombre, 0);
+    const valeurOrdi = mainOrdi.reduce((s, t) => s + t.nombre, 0);
+
+    let resultat;
+    if (valeurJoueur < valeurOrdi) {
+        const gain = valeurOrdi - valeurJoueur;
+        score += gain;
+        resultat = `tu gagnes ${gain} point${gain > 1 ? 's' : ''} (${valeurJoueur} en main contre ${valeurOrdi} pour l'ordinateur)`;
+    } else if (valeurJoueur > valeurOrdi) {
+        const perte = valeurJoueur - valeurOrdi;
+        score -= perte;
+        resultat = `tu perds ${perte} point${perte > 1 ? 's' : ''} (${valeurJoueur} en main contre ${valeurOrdi} pour l'ordinateur)`;
+    } else {
+        resultat = `égalité, aucun point n'est échangé (${valeurJoueur} tuiles en main de chaque côté)`;
+    }
+
+    document.getElementById('score').innerText = score;
+    afficherMessage(`Pioche vide, plus aucun coup possible : la manche s'arrête ici et les points sont comptés — ${resultat}.`);
+
+    setTimeout(demarrerNouvelleManche, 2500);
 }
 
 // ---------- Fin de manche ----------
