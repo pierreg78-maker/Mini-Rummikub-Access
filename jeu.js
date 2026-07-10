@@ -12,6 +12,11 @@ let score = 0;
 let baselineGroupes = [];
 let baselineMainJoueurIds = [];
 
+// Nombre minimum de tuiles pour qu'un groupe (paire/trio ou suite) soit
+// valide. Réglable par le sélecteur "Min. Cartes" (2 = paires autorisées,
+// 3 = triades/suites de 3 minimum).
+let tailleMinGroupe = 2;
+
 function cloneGroupes(g) {
     return g.map(groupe => ({ id: groupe.id, tuiles: [...groupe.tuiles] }));
 }
@@ -57,6 +62,19 @@ function majCompteurOrdi() {
     if (el) el.innerText = mainOrdi.length;
 }
 
+// ---------- Réglage : taille minimale d'un groupe ----------
+
+function definirTailleMinGroupe(taille) {
+    tailleMinGroupe = taille;
+    const btn2 = document.getElementById('btn-min-2');
+    const btn3 = document.getElementById('btn-min-3');
+    if (btn2) btn2.classList.toggle('actif', taille === 2);
+    if (btn3) btn3.classList.toggle('actif', taille === 3);
+    afficherMessage(taille === 2
+        ? "Règle changée : les paires (2 tuiles) sont autorisées."
+        : "Règle changée : chaque groupe doit avoir au moins 3 tuiles (triades/suites).");
+}
+
 // ---------- Partie / Manche ----------
 
 function initialiserPartie() {
@@ -89,7 +107,7 @@ function demarrerTourJoueur() {
 // ---------- Validation des groupes ----------
 
 function estGroupeValide(tuiles) {
-    if (tuiles.length < 2) return false;
+    if (tuiles.length < tailleMinGroupe) return false;
 
     const nombresDistincts = new Set(tuiles.map(t => t.nombre));
     const couleursDistinctes = new Set(tuiles.map(t => t.couleur));
@@ -109,6 +127,31 @@ function estGroupeValide(tuiles) {
     return false;
 }
 
+// ---------- Tri automatique des groupes ----------
+
+const ordreCouleur = { rouge: 0, vert: 1, bleu: 2 };
+
+// Range les tuiles d'un groupe : par chiffre croissant si c'est une suite
+// (même couleur), par couleur si c'est une paire/trio (même chiffre).
+// Ainsi, ajouter une tuile à une suite ne la place plus systématiquement
+// à droite : elle est réinsérée au bon endroit.
+function trierGroupe(groupe) {
+    const tuiles = groupe.tuiles.map(id => toutesTuiles[id]).filter(Boolean);
+    if (tuiles.length < 2) return;
+
+    const nombresDistincts = new Set(tuiles.map(t => t.nombre));
+    if (nombresDistincts.size === 1) {
+        tuiles.sort((a, b) => ordreCouleur[a.couleur] - ordreCouleur[b.couleur]);
+    } else {
+        tuiles.sort((a, b) => a.nombre - b.nombre);
+    }
+    groupe.tuiles = tuiles.map(t => t.id);
+}
+
+function trierTousLesGroupes() {
+    plateauGroupes.forEach(trierGroupe);
+}
+
 // ---------- Tri de la main ----------
 
 function trierMainParCouleur() {
@@ -125,6 +168,8 @@ function trierMainParChiffre() {
 // ---------- Rendu ----------
 
 function renduComplet() {
+    trierTousLesGroupes();
+
     const conteneurJoueur = document.getElementById('main-joueur');
     conteneurJoueur.innerHTML = '';
     mainJoueur.forEach(t => conteneurJoueur.appendChild(creerElementTuile(t)));
@@ -370,16 +415,20 @@ function trouverCombinaisonIA(main) {
             }
         }
     }
-    for (let couleur of couleurs) {
-        const tuiles = main.filter(t => t.couleur === couleur).sort((a, b) => a.nombre - b.nombre);
-        for (let i = 0; i <= tuiles.length - 2; i++) {
-            if (tuiles[i + 1].nombre === tuiles[i].nombre + 1) return [tuiles[i], tuiles[i + 1]];
+    // Les combinaisons de 2 tuiles (paires, suites de 2) ne sont cherchées
+    // que si le réglage "Min. Cartes" autorise les paires.
+    if (tailleMinGroupe <= 2) {
+        for (let couleur of couleurs) {
+            const tuiles = main.filter(t => t.couleur === couleur).sort((a, b) => a.nombre - b.nombre);
+            for (let i = 0; i <= tuiles.length - 2; i++) {
+                if (tuiles[i + 1].nombre === tuiles[i].nombre + 1) return [tuiles[i], tuiles[i + 1]];
+            }
         }
-    }
-    for (let n of nombres) {
-        const groupe = main.filter(t => t.nombre === n);
-        const parCouleur = [...new Map(groupe.map(t => [t.couleur, t])).values()];
-        if (parCouleur.length >= 2) return parCouleur.slice(0, 2);
+        for (let n of nombres) {
+            const groupe = main.filter(t => t.nombre === n);
+            const parCouleur = [...new Map(groupe.map(t => [t.couleur, t])).values()];
+            if (parCouleur.length >= 2) return parCouleur.slice(0, 2);
+        }
     }
     return null;
 }
