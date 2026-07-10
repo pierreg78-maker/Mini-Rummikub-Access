@@ -2,15 +2,35 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini-Rummikub Access</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f8f9fa; color: #333; }
-        header { margin-bottom: 20px; }
-        h1 { margin-bottom: 0; }
-        button { padding: 12px 25px; font-size: 16px; border: 2px solid #d4af37; border-radius: 25px; background: white; cursor: pointer; transition: all 0.3s ease; font-weight: bold; color: #555; margin: 5px; }
-        button:hover { background: #d4af37; color: white; }
-        #plateau, #main-joueur { min-height: 180px; border: 2px solid #ddd; padding: 20px; margin: 20px auto; width: 85%; border-radius: 15px; display: flex; flex-wrap: wrap; justify-content: center; background: #fff; }
-        .tuile { width: 75px; height: 105px; border: 3px solid #d4af37; border-radius: 12px; margin: 10px; font-size: 36px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: grab; box-shadow: 4px 4px 10px rgba(0,0,0,0.15); color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        body { font-family: sans-serif; text-align: center; background-color: #f8f9fa; margin: 0; padding: 10px; }
+        header h1 { font-size: 2em; margin-bottom: 5px; } /* Titre plus gros */
+        header p { font-size: 1.2em; color: #777; } /* Sous-titre plus gros */
+        
+        #plateau { 
+            min-height: 150px; border: 3px dashed #d4af37; padding: 10px; margin: 10px auto; 
+            width: 95%; display: flex; flex-wrap: wrap; justify-content: center; position: relative;
+        }
+        /* Filigrane */
+        #plateau::before {
+            content: "Déposer ici les paires et les suites";
+            position: absolute; color: #ccc; font-weight: bold; pointer-events: none;
+        }
+        
+        #main-joueur { 
+            min-height: 120px; border: 2px solid #ddd; padding: 5px; margin: 10px auto; 
+            width: 95%; display: flex; flex-wrap: wrap; justify-content: center; 
+        }
+        
+        /* Tuiles agrandies */
+        .tuile { 
+            width: 18vw; height: 25vw; max-width: 80px; max-height: 110px;
+            border: 3px solid #d4af37; border-radius: 12px; margin: 5px;
+            font-size: 8vw; font-weight: bold; display: flex; align-items: center;
+            justify-content: center; cursor: grab; color: white;
+        }
         .rouge { background: linear-gradient(135deg, #ff7e5f, #feb47b); }
         .vert { background: linear-gradient(135deg, #56ab2f, #a8e063); }
         .bleu { background: linear-gradient(135deg, #4facfe, #00f2fe); }
@@ -19,16 +39,10 @@
 <body>
     <header>
         <h1>Mini-Rummikub</h1>
-        <p style="font-size: 16px; color: #777; margin-top: 5px;">3 couleurs, tuiles numérotées de 1 à 6</p>
+        <p>3 couleurs, tuiles numérotées de 1 à 6</p>
     </header>
-    <div>
-        <button onclick="initialiserPartie()">Nouvelle Partie</button>
-        <button onclick="joueurPioche()">Piocher</button>
-        <p>Score : <span id="score">0</span></p>
-    </div>
     <div id="plateau" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
     <div id="main-joueur" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-
     <script src="jeu.js"></script>
 </body>
 </html>
