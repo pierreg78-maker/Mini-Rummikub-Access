@@ -111,6 +111,10 @@
         }
         button:hover { transform: translateY(-2px); box-shadow: 0 5px 12px rgba(0,0,0,0.22); }
         button:active { transform: translateY(0); box-shadow: 0 2px 5px rgba(0,0,0,0.18); }
+        button:disabled {
+            opacity: 0.45; cursor: not-allowed;
+            transform: none; box-shadow: none;
+        }
 
         .btn-partie { background: linear-gradient(135deg, #6a11cb, #2575fc); }
         .btn-valider { background: linear-gradient(135deg, #11998e, #38ef7d); }
