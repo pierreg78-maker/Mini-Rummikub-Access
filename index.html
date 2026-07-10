@@ -87,13 +87,14 @@
         <h1>Mini-Rummikub</h1>
         <p>3 couleurs, tuiles de 1 à 6</p>
     </header>
-    <div class="actions-partie">
-        <button class="btn-partie" onclick="initialiserPartie()">Nouvelle Partie</button>
-        <p>Score : <span id="score">0</span></p>
-        <p>Tour : <span id="tour-actuel">À toi de jouer !</span></p>
-        <p id="ordi-info">Tuiles restantes chez l'ordinateur : <span id="ordi-compte">5</span></p>
-        <p id="journal"></p>
-    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+
+<div class="actions-partie">
+    <button class="btn-partie" onclick="initialiserPartie()">Nouvelle Partie</button>
+    <p>Score : <span id="score">0</span> | Ordi : <span id="ordi-compte">5</span></p>
+    <p id="journal"></p>
+</div>
     <div id="plateau"></div>
     <div class="actions">
         <button class="btn-valider" onclick="validerCoup()">Valider mon coup</button>
