@@ -1,13 +1,17 @@
 const couleurs = ['rouge', 'vert', 'bleu'];
 const nombres = [1, 2, 3, 4, 5, 6];
 let deck = [], mainJoueur = [], mainOrdi = [], score = 0;
+let toutesTuiles = {}; // registre id -> {nombre, couleur, id}, pour retrouver une tuile depuis le plateau
 
 function genererDeck() {
     deck = [];
+    toutesTuiles = {};
     couleurs.forEach(couleur => {
         nombres.forEach(nombre => {
             for (let i = 0; i < 2; i++) {
-                deck.push({ nombre, couleur, id: `t-${couleur}-${nombre}-${i}` });
+                const t = { nombre, couleur, id: `t-${couleur}-${nombre}-${i}` };
+                deck.push(t);
+                toutesTuiles[t.id] = t;
             }
         });
     });
@@ -77,6 +81,41 @@ function tourOrdinateur() {
 
 function allowDrop(ev) { ev.preventDefault(); }
 
+// Recalcule le score en comptant uniquement les paires/suites valides réellement
+// présentes sur le plateau (une tuile isolée ne rapporte rien).
+function evaluerPlateau() {
+    const plateauEl = document.getElementById('plateau');
+    const tuilesPlateau = Array.from(plateauEl.children)
+        .map(el => toutesTuiles[el.id])
+        .filter(Boolean);
+
+    const dejaUtilisees = new Set();
+    let groupesValides = 0;
+
+    for (let i = 0; i < tuilesPlateau.length; i++) {
+        const a = tuilesPlateau[i];
+        if (dejaUtilisees.has(a.id)) continue;
+
+        for (let j = i + 1; j < tuilesPlateau.length; j++) {
+            const b = tuilesPlateau[j];
+            if (dejaUtilisees.has(b.id)) continue;
+
+            const estPaire = a.nombre === b.nombre;
+            const estSuite = a.couleur === b.couleur && Math.abs(a.nombre - b.nombre) === 1;
+
+            if (estPaire || estSuite) {
+                dejaUtilisees.add(a.id);
+                dejaUtilisees.add(b.id);
+                groupesValides++;
+                break;
+            }
+        }
+    }
+
+    score = groupesValides;
+    document.getElementById('score').innerText = score;
+}
+
 function drop(ev) {
     ev.preventDefault();
     const data = ev.dataTransfer.getData("text");
@@ -92,8 +131,7 @@ function drop(ev) {
     if (target.id === 'plateau' || target.id === 'main-joueur') {
         target.appendChild(draggedElement);
         if (target.id === 'plateau') {
-            score++;
-            document.getElementById('score').innerText = score;
+            evaluerPlateau();
             setTimeout(tourOrdinateur, 1000);
         }
     }
