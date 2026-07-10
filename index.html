@@ -41,6 +41,11 @@
         <h1>Mini-Rummikub</h1>
         <p>3 couleurs, tuiles numérotées de 1 à 6</p>
     </header>
+    <div>
+        <button onclick="initialiserPartie()">Nouvelle Partie</button>
+        <button onclick="joueurPioche()">Piocher</button>
+        <p>Score : <span id="score">0</span></p>
+    </div>
     <div id="plateau" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
     <div id="main-joueur" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
     <script src="jeu.js"></script>
