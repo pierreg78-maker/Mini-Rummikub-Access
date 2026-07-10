@@ -116,38 +116,78 @@
         .btn-piocher { background: linear-gradient(135deg, #f7971e, #ffd200); color: #5a4300; }
         .btn-tri { background: linear-gradient(135deg, #8e9eab, #5b6a78); }
 
-        /* Sélecteur "Min. Cartes" (paires / triades) */
-        .actions-regles {
+        /* Barre du haut : bouton Nouvelle Partie + Score, côte à côte */
+        .barre-haut {
             display: flex; align-items: center; justify-content: center;
-            flex-wrap: wrap; gap: 6px; margin: 8px 0;
+            gap: 24px; width: 95%; max-width: 420px; margin: 10px auto;
         }
-        .libelle-regle { font-weight: 600; color: #555; margin-right: 4px; }
-        .btn-regle {
-            background: #e9ecef; color: #555;
-            box-shadow: inset 0 0 0 2px #ccc;
+        .barre-haut .btn-partie { margin: 0; }
+        .score-conteneur {
+            font-weight: 700; color: #2c3e50; font-size: 0.95em;
+            letter-spacing: 0.5px; line-height: 1.2; text-align: left;
         }
-        .btn-regle.actif {
+        .score-conteneur span {
+            display: block; font-size: 1.4em; color: #2575fc;
+        }
+
+        /* Sélecteur "Min. Cartes" : bouton glissant (toggle) façon interrupteur,
+           qui se déplace à gauche/à droite selon l'option choisie. */
+        .toggle-regle {
+            position: relative;
+            display: flex;
+            width: 300px;
+            max-width: 90%;
+            margin: 12px auto;
+            background: #e9ecef;
+            border-radius: 30px;
+            padding: 4px;
+            box-shadow: inset 0 1px 5px rgba(0,0,0,0.15);
+        }
+        .toggle-curseur {
+            position: absolute;
+            top: 4px; left: 4px;
+            width: calc(50% - 4px);
+            height: calc(100% - 8px);
             background: linear-gradient(135deg, #6a11cb, #2575fc);
-            color: white;
+            border-radius: 26px;
             box-shadow: 0 3px 8px rgba(37,117,252,0.4);
+            transition: transform 0.25s ease;
         }
+        .toggle-curseur.droite { transform: translateX(100%); }
+
+        .toggle-option {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            background: none;
+            box-shadow: none;
+            border-radius: 26px;
+            color: #666;
+            font-weight: 700;
+            font-size: 0.8em;
+            letter-spacing: 0.5px;
+            padding: 10px 0;
+            margin: 0;
+            transition: color 0.25s ease;
+        }
+        .toggle-option:hover { transform: none; box-shadow: none; }
+        .toggle-option.actif { color: white; }
     </style>
 </head>
 <body>
     <header>
         <h1>Mini-Rummikub</h1>
-        <p>3 couleurs, 2x6 tuiles par couleur</p>
     </header>
-    <div class="actions-regles">
-        <span class="libelle-regle">Min. Cartes :</span>
-        <button id="btn-min-2" class="btn-regle actif" onclick="definirTailleMinGroupe(2)">Paires (2)</button>
-        <button id="btn-min-3" class="btn-regle" onclick="definirTailleMinGroupe(3)">Triades (3)</button>
+    <div class="barre-haut">
+        <button class="btn-partie" onclick="initialiserPartie()">Nouvelle Partie</button>
+        <div class="score-conteneur">SCORE : <span id="score">0</span></div>
     </div>
-<div class="actions-partie">
-    <button class="btn-partie" onclick="initialiserPartie()">Nouvelle Partie</button>
-    <p>Score : <span id="score">0</span>  </p>
+    <div class="toggle-regle">
+        <div class="toggle-curseur" id="toggle-curseur"></div>
+        <button id="btn-min-2" class="toggle-option actif" onclick="definirTailleMinGroupe(2)">PAIRES (2)</button>
+        <button id="btn-min-3" class="toggle-option" onclick="definirTailleMinGroupe(3)">TRIADES (3)</button>
+    </div>
     <p id="journal"></p>
-</div>
     <div id="plateau"></div>
     <div class="actions">
         <button class="btn-valider" onclick="validerCoup()">Valider mon tour</button>
