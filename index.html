@@ -115,13 +115,34 @@
         .btn-annuler { background: linear-gradient(135deg, #eb3349, #f45c43); }
         .btn-piocher { background: linear-gradient(135deg, #f7971e, #ffd200); color: #5a4300; }
         .btn-tri { background: linear-gradient(135deg, #8e9eab, #5b6a78); }
+
+        /* Sélecteur "Min. Cartes" (paires / triades) */
+        .actions-regles {
+            display: flex; align-items: center; justify-content: center;
+            flex-wrap: wrap; gap: 6px; margin: 8px 0;
+        }
+        .libelle-regle { font-weight: 600; color: #555; margin-right: 4px; }
+        .btn-regle {
+            background: #e9ecef; color: #555;
+            box-shadow: inset 0 0 0 2px #ccc;
+        }
+        .btn-regle.actif {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            box-shadow: 0 3px 8px rgba(37,117,252,0.4);
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Mini-Rummikub</h1>
-        <p>3 couleurs, 6 tuiles par couleur, paires autorisées, priorité aux groupes déjà formés sur le plateau</p>
+        <p>3 couleurs, 6 tuiles par couleur, priorité aux groupes déjà formés sur le plateau</p>
     </header>
+    <div class="actions-regles">
+        <span class="libelle-regle">Min. Cartes :</span>
+        <button id="btn-min-2" class="btn-regle actif" onclick="definirTailleMinGroupe(2)">Paires (2)</button>
+        <button id="btn-min-3" class="btn-regle" onclick="definirTailleMinGroupe(3)">Triades (3)</button>
+    </div>
 <div class="actions-partie">
     <button class="btn-partie" onclick="initialiserPartie()">Nouvelle Partie</button>
     <p>Score : <span id="score">0</span>  </p>
