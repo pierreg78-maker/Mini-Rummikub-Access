@@ -196,7 +196,7 @@ function renduComplet() {
     // un second groupe d'une seule tuile.
     const zoneNouveauGroupe = document.createElement('div');
     zoneNouveauGroupe.className = 'nouveau-groupe';
-    zoneNouveauGroupe.innerText = '+Nouveau groupe';
+    zoneNouveauGroupe.innerText = '+ Former un nouveau groupe de tuiles';
     plateau.appendChild(zoneNouveauGroupe);
 
     majCompteurOrdi();
