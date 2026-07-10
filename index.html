@@ -63,10 +63,35 @@
             border: 3px solid #d4af37; border-radius: 12px; margin: 5px;
             font-size: 8vw; font-weight: bold; display: flex; align-items: center;
             justify-content: center; cursor: grab; color: white;
+            /* Empêche le navigateur de scroller la page pendant qu'on glisse
+               une tuile au doigt sur un téléphone. */
+            touch-action: none;
+            user-select: none; -webkit-user-select: none;
         }
         .rouge { background: linear-gradient(135deg, #ff7e5f, #feb47b); }
         .vert { background: linear-gradient(135deg, #56ab2f, #a8e063); }
         .bleu { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+        /* Tuile d'origine pendant qu'on la déplace : estompée et transparente
+           aux évènements pour laisser deviner la zone de dépôt en dessous. */
+        .tuile.dragging { opacity: 0.3; pointer-events: none; }
+
+        /* Copie de la tuile qui suit le doigt/la souris pendant le glisser. */
+        .tuile.fantome {
+            pointer-events: none;
+            opacity: 0.95;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+            transform: scale(1.08);
+            z-index: 1000;
+        }
+
+        /* Zone (groupe, nouveau groupe ou main) actuellement survolée
+           pendant le glisser : mise en évidence pour montrer où la tuile
+           va atterrir si on la lâche maintenant. */
+        .groupe.survole, .nouveau-groupe.survole, #main-joueur.survole {
+            outline: 4px solid #2575fc;
+            background-color: rgba(37,117,252,0.12);
+        }
 
         /* Boutons modernes : deux coins arrondis (haut-gauche / bas-droit) */
         .actions, .actions-tri, .actions-partie { margin: 8px 0; }
@@ -97,9 +122,6 @@
         <h1>Mini-Rummikub</h1>
         <p>3 couleurs, 6 tuiles par couleur, paires autorisées, priorité aux groupes déjà formés sur le plateau</p>
     </header>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
-
 <div class="actions-partie">
     <button class="btn-partie" onclick="initialiserPartie()">Nouvelle Partie</button>
     <p>Score : <span id="score">0</span>  </p>
