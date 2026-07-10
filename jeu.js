@@ -23,14 +23,12 @@ function creerElementTuile(t) {
     div.addEventListener('dragstart', () => div.classList.add('dragging'));
     div.addEventListener('dragend', () => div.classList.remove('dragging'));
     return div;
-}
 
 function initialiserPartie() {
     genererDeck();
     mainJoueur = []; mainOrdi = []; score = 0;
-    document.getElementById('score').innerText = score;
-    document.getElementById('plateau').innerHTML = '';
-    for(let i = 0; i < 7; i++) {
+    // Distribution de 5 tuiles au lieu de 7
+    for(let i = 0; i < 5; i++) {
         mainJoueur.push(deck.pop());
         mainOrdi.push(deck.pop());
     }
@@ -76,18 +74,22 @@ function drop(ev) {
     const data = ev.dataTransfer.getData("text");
     const draggedElement = document.getElementById(data);
     let target = ev.target;
+    
+    // Si on lâche sur une tuile, on cible le parent
     if (target.classList.contains('tuile')) target = target.parentElement;
-
-    if (target.id === 'plateau') {
+    
+    // Vérifier si la zone est valide (plateau ou main)
+    if (target.id === 'plateau' || target.id === 'main-joueur') {
         target.appendChild(draggedElement);
-        score++;
-        document.getElementById('score').innerText = score;
-        setTimeout(tourOrdinateur, 1000);
-    } else if (target.id === 'main-joueur') {
-        target.appendChild(draggedElement);
+        if (target.id === 'plateau') {
+            score++;
+            document.getElementById('score').innerText = score;
+            setTimeout(tourOrdinateur, 1000);
+        }
     }
 }
 
+function allowDrop(ev) { ev.preventDefault(); }
 function joueurPioche() {
     if (deck.length > 0) {
         const t = deck.pop();
