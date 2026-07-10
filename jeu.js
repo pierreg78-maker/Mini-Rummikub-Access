@@ -20,13 +20,18 @@ function creerElementTuile(t) {
     div.innerText = t.nombre;
     div.id = t.id;
     div.draggable = true;
-    div.addEventListener('dragstart', () => div.classList.add('dragging'));
+    div.addEventListener('dragstart', (ev) => {
+        ev.dataTransfer.setData('text', div.id);
+        div.classList.add('dragging');
+    });
     div.addEventListener('dragend', () => div.classList.remove('dragging'));
     return div;
+}
 
 function initialiserPartie() {
     genererDeck();
     mainJoueur = []; mainOrdi = []; score = 0;
+    document.getElementById('score').innerText = score;
     // Distribution de 5 tuiles au lieu de 7
     for(let i = 0; i < 5; i++) {
         mainJoueur.push(deck.pop());
@@ -35,6 +40,9 @@ function initialiserPartie() {
     const conteneurJoueur = document.getElementById('main-joueur');
     conteneurJoueur.innerHTML = '';
     mainJoueur.forEach(t => conteneurJoueur.appendChild(creerElementTuile(t)));
+
+    const plateau = document.getElementById('plateau');
+    plateau.innerHTML = '';
 }
 
 function trouverCombinaison(main) {
@@ -73,11 +81,13 @@ function drop(ev) {
     ev.preventDefault();
     const data = ev.dataTransfer.getData("text");
     const draggedElement = document.getElementById(data);
+    if (!draggedElement) return;
+
     let target = ev.target;
-    
+
     // Si on lâche sur une tuile, on cible le parent
     if (target.classList.contains('tuile')) target = target.parentElement;
-    
+
     // Vérifier si la zone est valide (plateau ou main)
     if (target.id === 'plateau' || target.id === 'main-joueur') {
         target.appendChild(draggedElement);
@@ -89,7 +99,6 @@ function drop(ev) {
     }
 }
 
-function allowDrop(ev) { ev.preventDefault(); }
 function joueurPioche() {
     if (deck.length > 0) {
         const t = deck.pop();
