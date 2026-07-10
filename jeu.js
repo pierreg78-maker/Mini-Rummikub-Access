@@ -68,8 +68,10 @@ function definirTailleMinGroupe(taille) {
     tailleMinGroupe = taille;
     const btn2 = document.getElementById('btn-min-2');
     const btn3 = document.getElementById('btn-min-3');
+    const curseur = document.getElementById('toggle-curseur');
     if (btn2) btn2.classList.toggle('actif', taille === 2);
     if (btn3) btn3.classList.toggle('actif', taille === 3);
+    if (curseur) curseur.classList.toggle('droite', taille === 3);
     afficherMessage(taille === 2
         ? "Règle changée : les paires (2 tuiles) sont autorisées."
         : "Règle changée : chaque groupe doit avoir au moins 3 tuiles (triades/suites).");
