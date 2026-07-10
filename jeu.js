@@ -36,12 +36,7 @@ function creerElementTuile(t) {
     div.className = `tuile ${t.couleur}`;
     div.innerText = t.nombre;
     div.id = t.id;
-    div.draggable = true;
-    div.addEventListener('dragstart', (ev) => {
-        ev.dataTransfer.setData('text/plain', div.id);
-        div.classList.add('dragging');
-    });
-    div.addEventListener('dragend', () => div.classList.remove('dragging'));
+    div.addEventListener('pointerdown', (ev) => demarrerGlisser(ev, div, t.id));
     return div;
 }
 
@@ -142,8 +137,6 @@ function renduComplet() {
         divGroupe.dataset.groupeId = groupe.id;
         divGroupe.dataset.numero = `Groupe ${index + 1}`;
         divGroupe.title = `Groupe ${index + 1}`;
-        divGroupe.addEventListener('dragover', allowDrop);
-        divGroupe.addEventListener('drop', (ev) => drop(ev, 'groupe', groupe.id));
         groupe.tuiles.forEach(id => {
             const t = toutesTuiles[id];
             if (t) divGroupe.appendChild(creerElementTuile(t));
@@ -157,16 +150,133 @@ function renduComplet() {
     const zoneNouveauGroupe = document.createElement('div');
     zoneNouveauGroupe.className = 'nouveau-groupe';
     zoneNouveauGroupe.innerText = '+ Poser les tuiles de jeu ici';
-    zoneNouveauGroupe.addEventListener('dragover', allowDrop);
-    zoneNouveauGroupe.addEventListener('drop', (ev) => drop(ev, 'nouveauGroupe'));
     plateau.appendChild(zoneNouveauGroupe);
 
     majCompteurOrdi();
 }
 
-// ---------- Drag & drop ----------
+// ---------- Glisser-déposer (souris ET tactile via Pointer Events) ----------
+//
+// L'ancien système reposait sur l'API HTML5 Drag & Drop (dragstart/drop),
+// qui ne fonctionne pas sur les écrans tactiles des téléphones. On utilise
+// désormais les Pointer Events, qui unifient souris, stylet et doigt.
+// Principe : au pointerdown sur une tuile, on crée un "fantôme" qui suit le
+// doigt ; au pointerup, on regarde ce qu'il y a sous le doigt (élément
+// groupe / nouveau groupe / main) pour savoir où ranger la tuile.
 
-function allowDrop(ev) { ev.preventDefault(); }
+let fantomeActif = null;
+
+function demarrerGlisser(evDepart, div, id) {
+    // Ignore les clics droits/molette éventuels à la souris.
+    if (evDepart.pointerType === 'mouse' && evDepart.button !== 0) return;
+    evDepart.preventDefault();
+
+    const rect = div.getBoundingClientRect();
+    const decalageX = evDepart.clientX - rect.left;
+    const decalageY = evDepart.clientY - rect.top;
+
+    const fantome = div.cloneNode(true);
+    fantome.classList.add('fantome');
+    fantome.style.position = 'fixed';
+    fantome.style.left = rect.left + 'px';
+    fantome.style.top = rect.top + 'px';
+    fantome.style.width = rect.width + 'px';
+    fantome.style.height = rect.height + 'px';
+    fantome.style.margin = '0';
+    document.body.appendChild(fantome);
+    fantomeActif = fantome;
+
+    div.classList.add('dragging');
+    div.setPointerCapture(evDepart.pointerId);
+
+    function trouverCible(x, y) {
+        fantome.style.display = 'none';
+        const el = document.elementFromPoint(x, y);
+        fantome.style.display = '';
+        return el;
+    }
+
+    function surSurvol(cible) {
+        document.querySelectorAll('.groupe, .nouveau-groupe, #main-joueur').forEach(el => el.classList.remove('survole'));
+        if (cible) cible.classList.add('survole');
+    }
+
+    function deplacer(ev) {
+        ev.preventDefault();
+        fantome.style.left = (ev.clientX - decalageX) + 'px';
+        fantome.style.top = (ev.clientY - decalageY) + 'px';
+        const elSousDoigt = trouverCible(ev.clientX, ev.clientY);
+        const cible = elSousDoigt ? elSousDoigt.closest('.groupe, .nouveau-groupe, #main-joueur') : null;
+        surSurvol(cible);
+    }
+
+    function terminer(ev) {
+        ev.preventDefault();
+        const elSousDoigt = trouverCible(ev.clientX, ev.clientY);
+        nettoyer();
+        traiterDepot(id, elSousDoigt);
+    }
+
+    function annuler() {
+        nettoyer();
+    }
+
+    function nettoyer() {
+        fantome.remove();
+        fantomeActif = null;
+        div.classList.remove('dragging');
+        document.querySelectorAll('.groupe, .nouveau-groupe, #main-joueur').forEach(el => el.classList.remove('survole'));
+        div.removeEventListener('pointermove', deplacer);
+        div.removeEventListener('pointerup', terminer);
+        div.removeEventListener('pointercancel', annuler);
+        try { div.releasePointerCapture(evDepart.pointerId); } catch (e) { /* déjà relâché */ }
+    }
+
+    div.addEventListener('pointermove', deplacer);
+    div.addEventListener('pointerup', terminer);
+    div.addEventListener('pointercancel', annuler);
+}
+
+// Détermine où ranger la tuile relâchée en fonction de l'élément survolé,
+// puis met à jour l'état du jeu (équivalent de l'ancienne fonction drop()).
+function traiterDepot(id, elSousDoigt) {
+    const tuile = toutesTuiles[id];
+    if (!tuile) return;
+
+    retirerTuilePartout(id);
+
+    const groupeCible = elSousDoigt ? elSousDoigt.closest('.groupe') : null;
+    const nouveauGroupeCible = elSousDoigt ? elSousDoigt.closest('.nouveau-groupe') : null;
+    const mainCible = elSousDoigt ? elSousDoigt.closest('#main-joueur') : null;
+    const tuileCible = elSousDoigt ? elSousDoigt.closest('.tuile') : null;
+
+    if (groupeCible) {
+        let groupe = plateauGroupes.find(g => g.id === groupeCible.dataset.groupeId);
+        if (!groupe) {
+            groupe = { id: groupeCible.dataset.groupeId, tuiles: [] };
+            plateauGroupes.push(groupe);
+        }
+        groupe.tuiles.push(id);
+    } else if (nouveauGroupeCible) {
+        plateauGroupes.push({ id: `g${compteurGroupe++}`, tuiles: [id] });
+    } else if (mainCible || tuileCible) {
+        // Insertion à la position visée (permet de réorganiser librement la main),
+        // ou à la fin si on dépose sur un espace vide de la main.
+        let indexInsertion = mainJoueur.length;
+        if (tuileCible && tuileCible.id !== id) {
+            const idx = mainJoueur.findIndex(t => t.id === tuileCible.id);
+            if (idx !== -1) indexInsertion = idx;
+        }
+        mainJoueur.splice(indexInsertion, 0, tuile);
+    } else {
+        // Dépôt hors de toute zone connue : on rend la tuile au joueur
+        // plutôt que de la perdre.
+        mainJoueur.push(tuile);
+    }
+
+    fusionnerGroupesCompatibles();
+    renduComplet();
+}
 
 function retirerTuilePartout(id) {
     mainJoueur = mainJoueur.filter(t => t.id !== id);
@@ -196,41 +306,6 @@ function fusionnerGroupesCompatibles() {
             }
         }
     }
-}
-
-function drop(ev, targetType, targetGroupeId) {
-    ev.preventDefault();
-    ev.stopPropagation(); // empêche le drop de "remonter" et d'être traité une 2e fois par un parent
-    const id = ev.dataTransfer.getData('text/plain');
-    const tuile = toutesTuiles[id];
-    if (!tuile) return;
-
-    const cibleEl = ev.target; // capturé avant modification de l'état
-
-    retirerTuilePartout(id);
-
-    if (targetType === 'main') {
-        // Insertion à la position visée (permet de réorganiser librement la main),
-        // ou à la fin si on dépose sur un espace vide.
-        let indexInsertion = mainJoueur.length;
-        if (cibleEl && cibleEl.classList && cibleEl.classList.contains('tuile') && cibleEl.id !== id) {
-            const idx = mainJoueur.findIndex(t => t.id === cibleEl.id);
-            if (idx !== -1) indexInsertion = idx;
-        }
-        mainJoueur.splice(indexInsertion, 0, tuile);
-    } else if (targetType === 'groupe') {
-        let groupe = plateauGroupes.find(g => g.id === targetGroupeId);
-        if (!groupe) {
-            groupe = { id: targetGroupeId, tuiles: [] };
-            plateauGroupes.push(groupe);
-        }
-        groupe.tuiles.push(id);
-    } else if (targetType === 'nouveauGroupe') {
-        plateauGroupes.push({ id: `g${compteurGroupe++}`, tuiles: [id] });
-    }
-
-    fusionnerGroupesCompatibles();
-    renduComplet();
 }
 
 // ---------- Tour du joueur ----------
@@ -352,24 +427,9 @@ function finDeManche(gagnant) {
     demarrerNouvelleManche();
 }
 
-// ---------- Initialisation des zones fixes ----------
-
-document.getElementById('main-joueur').addEventListener('dragover', allowDrop);
-document.getElementById('main-joueur').addEventListener('drop', (ev) => drop(ev, 'main'));
-document.getElementById('plateau').addEventListener('dragover', allowDrop);
-
-// Surligne en vert le groupe (ou la zone "Nouveau groupe") actuellement survolé
-// pendant le glisser-déposer, pour savoir à l'avance où la tuile va atterrir.
-document.getElementById('plateau').addEventListener('dragover', (ev) => {
-    document.querySelectorAll('.groupe, .nouveau-groupe').forEach(el => el.classList.remove('survole'));
-    const cible = ev.target.closest('.groupe, .nouveau-groupe');
-    if (cible) cible.classList.add('survole');
-});
-document.addEventListener('dragend', () => {
-    document.querySelectorAll('.groupe, .nouveau-groupe').forEach(el => el.classList.remove('survole'));
-});
-// Plus d'écouteur "drop" direct ici : chaque groupe et la zone "+ Nouveau groupe"
-// gèrent leur propre dépôt (voir renduComplet). Cela évite qu'un dépôt sur un
-// groupe existant "remonte" et soit repris par le plateau pour créer un doublon.
+// ---------- Initialisation ----------
+// Le glisser-déposer est entièrement géré via Pointer Events (voir plus haut),
+// ce qui fonctionne aussi bien à la souris qu'au doigt sur un écran tactile.
+// Aucun écouteur global de type "dragover"/"drop" n'est donc nécessaire ici.
 
 initialiserPartie();
