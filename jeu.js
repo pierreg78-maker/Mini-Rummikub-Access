@@ -496,7 +496,7 @@ function finManchePiocheVide() {
     document.getElementById('score').innerText = score;
     afficherMessage(`Pioche vide, plus aucun coup possible : la manche s'arrête ici et les points sont comptés — ${resultat}.`);
 
-    setTimeout(demarrerNouvelleManche, 2500);
+    setTimeout(demarrerNouvelleManche, 5000);
 }
 
 // ---------- Fin de manche ----------
