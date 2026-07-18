@@ -279,22 +279,6 @@ header h1 {
     text-shadow: none;
 }
 
-.tuile::after {
-    content: attr(data-valeur);
-    position: relative;
-    z-index: 2;
-    display: block;
-    color: inherit;
-    letter-spacing: -0.08em;
-    line-height: 0.82;
-    transform: translateX(-0.02em);
-}
-
-/* Repli automatique pour les versions du jeu qui n'utilisent pas data-valeur. */
-.tuile:not([data-valeur]) {
-    color: inherit;
-}
-
 .tuile::before {
     content: "";
     position: absolute;
@@ -309,24 +293,39 @@ header h1 {
     pointer-events: none;
 }
 
-.rouge {
-    color: #df392f;
+.tuile.rouge {
+    color: #e32620;
+    -webkit-text-stroke: 0.5px #a91512;
+    text-shadow:
+        0 -1px 0 rgba(255,255,255,.75),
+        0 2px 0 rgba(142,20,17,.28),
+        0 3px 5px rgba(142,20,17,.22);
     background:
-        linear-gradient(180deg, rgba(255,255,255,.52), rgba(255,255,255,0) 42%),
+        linear-gradient(180deg, rgba(255,255,255,.58), rgba(255,255,255,0) 43%),
         linear-gradient(145deg, #fffefa, #f7efe3);
 }
 
-.vert {
-    color: #28a75f;
+.tuile.vert {
+    color: #229a4d;
+    -webkit-text-stroke: 0.5px #126a31;
+    text-shadow:
+        0 -1px 0 rgba(255,255,255,.75),
+        0 2px 0 rgba(10,92,39,.28),
+        0 3px 5px rgba(10,92,39,.22);
     background:
-        linear-gradient(180deg, rgba(255,255,255,.52), rgba(255,255,255,0) 42%),
+        linear-gradient(180deg, rgba(255,255,255,.58), rgba(255,255,255,0) 43%),
         linear-gradient(145deg, #fffefa, #f7efe3);
 }
 
-.bleu {
-    color: #2588df;
+.tuile.bleu {
+    color: #187bd1;
+    -webkit-text-stroke: 0.5px #0d4e98;
+    text-shadow:
+        0 -1px 0 rgba(255,255,255,.78),
+        0 2px 0 rgba(8,69,139,.28),
+        0 3px 5px rgba(8,69,139,.22);
     background:
-        linear-gradient(180deg, rgba(255,255,255,.52), rgba(255,255,255,0) 42%),
+        linear-gradient(180deg, rgba(255,255,255,.58), rgba(255,255,255,0) 43%),
         linear-gradient(145deg, #fffefa, #f7efe3);
 }
 
