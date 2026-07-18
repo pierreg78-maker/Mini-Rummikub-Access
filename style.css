@@ -213,6 +213,16 @@ header h1 {
     line-height: 1.25;
 }
 
+.ligne-nouveau-groupe {
+    flex: 0 0 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    margin-top: auto;
+    padding-top: 8px;
+}
+
 .nouveau-groupe {
     width: calc((100vw - 32px) / 6);
     height: calc(((100vw - 32px) / 6) * 1.32);
@@ -220,8 +230,8 @@ header h1 {
     min-height: 60px;
     max-width: 64px;
     max-height: 84px;
-    margin: 3px;
-    padding: 2px;
+    margin: 0 auto;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -229,10 +239,20 @@ header h1 {
     border-radius: 9px;
     color: var(--bleu);
     background: rgba(37, 117, 252, 0.045);
-    font-size: 0.58rem;
-    font-weight: 800;
-    line-height: 1.05;
+    font-size: clamp(2rem, 9vw, 3rem);
+    font-weight: 500;
+    line-height: 1;
     text-align: center;
+    transition:
+        transform 0.15s ease,
+        background-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.nouveau-groupe.survole {
+    transform: scale(1.08);
+    background: rgba(37, 117, 252, 0.14);
+    box-shadow: 0 5px 12px rgba(37, 117, 252, 0.22);
 }
 
 #main-joueur {
@@ -396,6 +416,78 @@ button:disabled {
     background: linear-gradient(135deg, #f39a32, #ffd15a);
 }
 
+
+/* Fenêtre commune « L'Atelier Mémo » */
+.fenetre-atelier {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+}
+
+.fenetre-atelier.visible {
+    display: flex;
+}
+
+.fenetre-atelier-fond {
+    position: absolute;
+    inset: 0;
+    background: rgba(24, 38, 57, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.fenetre-atelier-boite {
+    position: relative;
+    z-index: 1;
+    width: min(92vw, 360px);
+    padding: 22px 20px 18px;
+    border: 2px solid #76a9ec;
+    border-radius: 18px;
+    background: #fffdf7;
+    box-shadow: 0 14px 38px rgba(20, 45, 80, 0.28);
+    text-align: center;
+    animation: apparition-atelier 0.18s ease-out;
+}
+
+.fenetre-atelier-icone {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.fenetre-atelier-boite h2 {
+    margin: 7px 0 10px;
+    color: #245fae;
+    font-size: 1.25rem;
+}
+
+.fenetre-atelier-boite p {
+    margin: 0 0 17px;
+    color: #334357;
+    font-size: 1rem;
+    line-height: 1.42;
+    white-space: pre-line;
+}
+
+.fenetre-atelier-boite button {
+    min-width: 100px;
+    padding: 9px 20px;
+    background: linear-gradient(135deg, #4e8ddd, #245fae);
+}
+
+@keyframes apparition-atelier {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 @media (max-width: 380px) {
     body {
         padding-inline: 2px;
@@ -419,6 +511,9 @@ button:disabled {
     .nouveau-groupe {
         width: calc((100vw - 28px) / 6);
         height: calc(((100vw - 28px) / 6) * 1.32);
+    }
+
+    .tuile {
         margin: 1.5px;
     }
 
