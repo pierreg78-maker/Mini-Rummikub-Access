@@ -18,18 +18,18 @@
         <h1>Mini-Rummikub</h1>
     </header>
     <div class="barre-haut">
-        <button class="btn-partie" onclick="initialiserPartie()">Nouvelle Partie</button>
+        <button class="btn-partie" onclick="initialiserPartie()">Jouer</button>
         <div class="score-conteneur">SCORE : <span id="score">0</span></div>
     </div>
     <div class="toggle-regle">
         <div class="toggle-curseur" id="toggle-curseur"></div>
-        <button id="btn-min-2" class="toggle-option actif" onclick="definirTailleMinGroupe(2)">PAIRES (2)</button>
-        <button id="btn-min-3" class="toggle-option" onclick="definirTailleMinGroupe(3)">TRIADES (3)</button>
+        <button id="btn-min-2" class="toggle-option actif" onclick="definirTailleMinGroupe(2)">PAIRES</button>
+        <button id="btn-min-3" class="toggle-option" onclick="definirTailleMinGroupe(3)">TRIADES</button>
     </div>
     <p id="journal"></p>
     <div id="plateau"></div>
     <div class="actions">
-        <button class="btn-valider" onclick="validerCoup()">Valider mon tour</button>
+        <button class="btn-valider" onclick="validerCoup()">Valider</button>
         <button class="btn-piocher" onclick="joueurPioche()">Piocher</button>
     </div>
     <div id="main-joueur"></div>
