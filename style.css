@@ -98,7 +98,7 @@ header h1 {
 .toggle-regle {
     position: relative;
     display: flex;
-    width: min(290px, 76vw);
+    width: min(190px, 76vw);
     margin: 4px auto;
     padding: 3px;
     background: #e9edf2;
