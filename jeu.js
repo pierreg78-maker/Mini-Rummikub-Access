@@ -119,6 +119,73 @@ function definirBoutonsActifs(actif) {
     if (btnPiocher) btnPiocher.disabled = !actif;
 }
 
+
+// ---------- Fenêtres Atelier Mémo ----------
+
+let actionApresAnnonce = null;
+
+function creerFenetreAtelier() {
+    if (document.getElementById('fenetre-atelier')) return;
+
+    const fenetre = document.createElement('div');
+    fenetre.id = 'fenetre-atelier';
+    fenetre.className = 'fenetre-atelier';
+    fenetre.setAttribute('aria-hidden', 'true');
+
+    fenetre.innerHTML = `
+        <div class="fenetre-atelier-fond"></div>
+        <div class="fenetre-atelier-boite"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="fenetre-atelier-titre"
+             aria-describedby="fenetre-atelier-message">
+            <div class="fenetre-atelier-icone" aria-hidden="true">🧠</div>
+            <h2 id="fenetre-atelier-titre">L’Atelier Mémo</h2>
+            <p id="fenetre-atelier-message"></p>
+            <button type="button" id="fenetre-atelier-ok">OK</button>
+        </div>
+    `;
+
+    document.body.appendChild(fenetre);
+
+    function fermerFenetreAtelier() {
+        fenetre.classList.remove('visible');
+        fenetre.setAttribute('aria-hidden', 'true');
+
+        const action = actionApresAnnonce;
+        actionApresAnnonce = null;
+        if (typeof action === 'function') action();
+    }
+
+    document.getElementById('fenetre-atelier-ok')
+        .addEventListener('click', fermerFenetreAtelier);
+
+    fenetre.querySelector('.fenetre-atelier-fond')
+        .addEventListener('click', fermerFenetreAtelier);
+
+    document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && fenetre.classList.contains('visible')) {
+            fermerFenetreAtelier();
+        }
+    });
+}
+
+function afficherAnnonceAtelier(message, apresFermeture = null) {
+    creerFenetreAtelier();
+
+    actionApresAnnonce = apresFermeture;
+
+    const fenetre = document.getElementById('fenetre-atelier');
+    document.getElementById('fenetre-atelier-message').textContent = message;
+
+    fenetre.classList.add('visible');
+    fenetre.setAttribute('aria-hidden', 'false');
+
+    requestAnimationFrame(() => {
+        document.getElementById('fenetre-atelier-ok')?.focus();
+    });
+}
+
 // ---------- Validation des groupes ----------
 
 function estGroupeValide(tuiles) {
@@ -194,10 +261,17 @@ function renduComplet() {
     // Zone toujours visible et bien délimitée pour démarrer un NOUVEAU groupe.
     // Évite qu'une tuile déposée "à côté" d'un groupe existant crée par erreur
     // un second groupe d'une seule tuile.
+    const ligneNouveauGroupe = document.createElement('div');
+    ligneNouveauGroupe.className = 'ligne-nouveau-groupe';
+
     const zoneNouveauGroupe = document.createElement('div');
     zoneNouveauGroupe.className = 'nouveau-groupe';
-    zoneNouveauGroupe.innerText = '+ Former un nouveau groupe de tuiles';
-    plateau.appendChild(zoneNouveauGroupe);
+    zoneNouveauGroupe.innerHTML = '<span aria-hidden="true">+</span>';
+    zoneNouveauGroupe.setAttribute('aria-label', 'Former un nouveau groupe');
+    zoneNouveauGroupe.title = 'Former un nouveau groupe';
+
+    ligneNouveauGroupe.appendChild(zoneNouveauGroupe);
+    plateau.appendChild(ligneNouveauGroupe);
 
     majCompteurOrdi();
 }
@@ -365,13 +439,13 @@ function validerCoup() {
     );
 
     if (!toutesValides) {
-        alert("Un ou plusieurs groupes sur le plateau ne sont pas valides (paire/trio = même chiffre, couleurs différentes ; suite = même couleur, chiffres qui se suivent).");
+        afficherAnnonceAtelier("Un ou plusieurs groupes sur le plateau ne sont pas valides.\n\nPaire ou trio : même chiffre, couleurs différentes.\nSuite : même couleur, chiffres qui se suivent.");
         return;
     }
 
     const auMoinsUneJouee = baselineMainJoueurIds.some(id => !mainJoueur.some(t => t.id === id));
     if (!auMoinsUneJouee) {
-        alert("Tu dois poser au moins une tuile de ta main ce tour-ci.");
+        afficherAnnonceAtelier("Tu dois poser au moins une tuile de ta main ce tour-ci.");
         return;
     }
 
@@ -505,16 +579,18 @@ function finDeManche(gagnant) {
     const valeurJoueur = mainJoueur.reduce((s, t) => s + t.nombre, 0);
     const valeurOrdi = mainOrdi.reduce((s, t) => s + t.nombre, 0);
 
+    let message;
+
     if (gagnant === 'joueur') {
         score += valeurOrdi;
-        alert(`Manche gagnée ! L'ordinateur avait ${valeurOrdi} points de tuiles en main : +${valeurOrdi} points pour toi.`);
+        message = `Manche gagnée !\n\nL'ordinateur avait ${valeurOrdi} points de tuiles en main : +${valeurOrdi} points pour toi.`;
     } else {
         score -= valeurJoueur;
-        alert(`Manche perdue. Il te restait ${valeurJoueur} points de tuiles en main : -${valeurJoueur} points.`);
+        message = `Manche perdue.\n\nIl te restait ${valeurJoueur} points de tuiles en main : -${valeurJoueur} points.`;
     }
 
     document.getElementById('score').innerText = score;
-    demarrerNouvelleManche();
+    afficherAnnonceAtelier(message, demarrerNouvelleManche);
 }
 
 // ---------- Initialisation ----------
