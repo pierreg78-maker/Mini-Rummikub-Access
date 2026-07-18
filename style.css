@@ -276,8 +276,8 @@ header h1 {
     height: calc(((100vw - 32px) / 6) * 1.32);
     min-width: 45px;
     min-height: 60px;
-    max-width: 64px;
-    max-height: 84px;
+    max-width: 54px;
+    max-height: 78px;
     margin: 2px;
     display: flex;
     align-items: center;
@@ -289,7 +289,7 @@ header h1 {
     box-shadow: var(--ombre-tuile);
     color: transparent;
     cursor: grab;
-    font-size: clamp(2.35rem, 12.2vw, 4.3rem);
+    font-size: clamp(1.35rem, 9.2vw, 2.3rem);
     font-weight: 900;
     line-height: 0.82;
     letter-spacing: -0.08em;
