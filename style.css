@@ -42,7 +42,8 @@ header h1 {
     margin: 2px 0 0;
     font-size: clamp(1.35rem, 5.5vw, 2rem);
     line-height: 1;
-    text-align: center;  /* ← Ajoute juste ça */
+    width: 100%;           /* ← Ajoute ça */
+    text-align: center;/* ← Ajoute juste ça */
 }
 
 .retour-atelier {
