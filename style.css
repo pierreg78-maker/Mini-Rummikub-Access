@@ -289,10 +289,10 @@ header h1 {
     box-shadow: var(--ombre-tuile);
     color: transparent;
     cursor: grab;
-    font-size: clamp(1.35rem, 9.2vw, 2.3rem);
+    font-size: clamp(2.2rem, 14vw, 3.8rem);
     font-weight: 900;
-    line-height: 0.82;
-    letter-spacing: -0.08em;
+    line-height: 0.75;
+    letter-spacing: -0.12em;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
@@ -518,7 +518,7 @@ button:disabled {
     }
 
     .tuile {
-        font-size: clamp(2.05rem, 11.9vw, 3.4rem);
+        font-size: clamp(2.6rem, 15vw, 4.2rem);
     }
 
     .groupe {
